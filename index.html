@@ -3,24 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#FF9A9E">
-    <title>Супер Азбука</title>
+    <title>Учим Буквы</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
     <div class="app-container">
         <header>
-            <h1 class="title">Учим Буквы</h1>
+            <h1 class="title">Азбука</h1>
         </header>
         
         <main id="main-card" class="card">
-            <div id="letter-display" class="letter">А</div>
+            <div id="letter-display" class="letter clickable">А</div>
             <div id="emoji-display" class="emoji-icon">🍉</div>
             <div id="word-display" class="word">Арбуз</div>
             
             <button id="play-sound" class="btn-play">
-                <span class="icon">🔊</span> Послушать
+                <span class="pulse-ring"></span>
+                🔊 Слушать
             </button>
         </main>
 
@@ -30,12 +30,6 @@
             <button id="btn-next" class="btn-nav">➡️</button>
         </div>
     </div>
-
     <script src="app.js"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
-        }
-    </script>
 </body>
 </html>
