@@ -1,5 +1,5 @@
-const CACHE_NAME = 'abc-cache-v1';
-const urlsToCache = [
+const CACHE_NAME = 'abc-pro-v2';
+const assets = [
   './',
   './index.html',
   './style.css',
@@ -7,24 +7,10 @@ const urlsToCache = [
   './manifest.json'
 ];
 
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache);
-      })
-  );
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(assets)));
 });
 
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        if (response) {
-          return response;
-        }
-        return fetch(event.request);
-      }
-    )
-  );
+self.addEventListener('fetch', e => {
+  e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
 });
