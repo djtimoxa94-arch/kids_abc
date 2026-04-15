@@ -3,32 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Учим Буквы</title>
+    <title>Азбука: Путь к чтению</title>
     <link rel="stylesheet" href="style.css">
     <link rel="manifest" href="manifest.json">
 </head>
 <body>
-    <div class="app-container">
-        <header>
-            <h1 class="title">Азбука</h1>
-        </header>
-        
-        <main id="main-card" class="card">
-            <div id="letter-display" class="letter clickable">А</div>
-            <div id="emoji-display" class="emoji-icon">🍉</div>
-            <div id="word-display" class="word">Арбуз</div>
-            
-            <button id="play-sound" class="btn-play">
-                <span class="pulse-ring"></span>
-                🔊 Слушать
-            </button>
-        </main>
-
-        <div class="controls">
-            <button id="btn-prev" class="btn-nav">⬅️</button>
-            <div class="counter"><span id="current-num">1</span> / 33</div>
-            <button id="btn-next" class="btn-nav">➡️</button>
-        </div>
+    <div id="app" class="app-container">
+        <!-- Экраны будут меняться динамически через JS -->
     </div>
     <script src="app.js"></script>
 </body>
