@@ -3,294 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Азбука: Эволюция Робота</title>
+    <title>Азбука: Остров Сокровищ</title>
     <style>
         :root {
-            --bg: #F0F9FF;
-            --green: #58CC02;
-            --green-dark: #46A302;
-            --blue: #1CB0F6;
-            --blue-dark: #1899D6;
-            --orange: #FF9600;
-            --text: #4B4B4B;
+            --sky: #1CB0F6; --grass: #58CC02; --path: #FFC800; --text: #4B4B4B; --orange: #FF9600;
         }
-
-        body {
-            margin: 0;
-            font-family: 'Rounded Mplus 1c', 'Comic Sans MS', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            user-select: none;
-        }
-
-        .app-container {
-            width: 100%;
-            max-width: 450px;
-            height: 100vh;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-        }
-
-        /* Личный кабинет */
-        .user-panel {
-            padding: 15px;
-            background: #fff;
-            border-bottom: 2px solid #E5E5E5;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .avatar-container {
-            width: 65px;
-            height: 65px;
-            background: #F7F7F7;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.2rem;
-            border: 3px solid var(--blue);
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
-
-        .stats { flex: 1; }
-        .xp-bar-bg {
-            width: 100%;
-            height: 12px;
-            background: #eee;
-            border-radius: 6px;
-            margin-top: 5px;
-            overflow: hidden;
-        }
-        .xp-bar-fill {
-            height: 100%;
-            background: var(--orange);
-            width: 0%;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
+        body { margin: 0; font-family: 'Rounded Mplus 1c', 'Segoe UI', sans-serif; background: #235391; color: var(--text); display: flex; justify-content: center; overflow: hidden; }
+        .app-container { width: 100%; max-width: 450px; height: 100vh; background: #F0F9FF; display: flex; flex-direction: column; position: relative; }
+        
         /* Экраны */
-        .screen { padding: 20px; flex: 1; overflow-y: auto; text-align: center; display: none; }
-        .active { display: block; }
+        .screen { display: none; flex-direction: column; height: 100%; overflow-y: auto; text-align: center; }
+        .active { display: flex !important; }
 
-        .level-card {
-            background: white;
-            border: 2px solid #E5E5E5;
-            border-bottom: 6px solid #E5E5E5;
-            border-radius: 20px;
-            margin-bottom: 15px;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.1s;
-        }
-        .level-card:active { transform: translateY(4px); border-bottom-width: 2px; }
+        /* Экран Имени */
+        #screen-setup { background: white; align-items: center; justify-content: center; padding: 30px; }
+        .input-name { padding: 15px; font-size: 1.2rem; border-radius: 15px; border: 3px solid var(--sky); width: 80%; margin: 20px 0; outline: none; text-align: center; }
+        
+        /* Карта */
+        .map-bg { flex: 1; background: linear-gradient(to bottom, #1CB0F6, #58CC02); padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 50px; }
+        .island { width: 130px; height: 130px; background: white; border-radius: 50%; border: 6px solid var(--path); display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; position: relative; box-shadow: 0 10px 0 #E5B300; transition: 0.2s; z-index: 2; }
+        .island:active { transform: translateY(5px); box-shadow: 0 5px 0 #E5B300; }
+        .island.locked { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; }
+        .island-label { position: absolute; bottom: -35px; background: white; padding: 5px 15px; border-radius: 15px; font-weight: bold; white-space: nowrap; border: 2px solid var(--path); }
 
-        /* Игровой процесс */
-        .progress-header { display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-        .progress-line { flex: 1; height: 10px; background: #eee; border-radius: 5px; overflow: hidden; }
-        .progress-line-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.3s; }
+        /* Мини-статус */
+        .header-panel { padding: 10px; background: white; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #eee; }
+        .stats-badge { background: #f0f0f0; padding: 5px 12px; border-radius: 20px; font-weight: bold; display: flex; align-items: center; gap: 5px; }
 
-        .big-char { font-size: 8rem; color: var(--blue); font-weight: bold; margin: 10px 0; line-height: 1; }
-        .btn-action {
-            background: var(--green);
-            color: white;
-            border: none;
-            padding: 20px;
-            border-radius: 20px;
-            font-size: 1.4rem;
-            font-weight: bold;
-            border-bottom: 6px solid var(--green-dark);
-            cursor: pointer;
-            width: 100%;
-            margin-bottom: 15px;
-            transition: all 0.1s;
-        }
-        .btn-action:active { transform: translateY(4px); border-bottom-width: 2px; }
+        /* Игра */
+        .game-screen { background: white; padding: 20px; }
+        .big-char { font-size: 10rem; font-weight: bold; color: var(--sky); margin: 10px 0; line-height: 1; }
+        .game-btn { background: var(--grass); color: white; border: none; padding: 22px; border-radius: 20px; font-size: 1.6rem; font-weight: bold; border-bottom: 6px solid #46A302; cursor: pointer; width: 100%; margin-top: auto; }
+        .game-btn:active { transform: translateY(3px); border-bottom-width: 3px; }
 
-        .back-btn { background: none; border: none; font-size: 2rem; cursor: pointer; padding: 0; }
+        /* Сундук */
+        .chest-anim { font-size: 6rem; animation: shake 0.5s infinite; }
+        @keyframes shake { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-10deg); } 75% { transform: rotate(10deg); } }
     </style>
 </head>
 <body>
 
 <div class="app-container">
-    <div class="user-panel">
-        <div id="user-avatar" class="avatar-container">⚙️</div>
-        <div class="stats">
-            <div style="font-weight: bold; font-size: 1.1rem;"><span id="robot-name">Новичок</span></div>
-            <div style="font-size: 0.85rem; color: #666;">Опыт: <span id="xp-text">0</span> XP</div>
-            <div class="xp-bar-bg"><div id="xp-fill" class="xp-bar-fill"></div></div>
+    <div id="screen-setup" class="screen active">
+        <div style="font-size: 6rem;">🤖</div>
+        <h1>Привет, Друг!</h1>
+        <p>Я твой новый помощник. <br>Как ты меня назовёшь?</p>
+        <input type="text" id="robot-name-input" class="input-name" placeholder="Введи имя...">
+        <button class="game-btn" onclick="saveRobotName()">ПОГНАЛИ! 🚀</button>
+    </div>
+
+    <div id="screen-map" class="screen">
+        <div class="header-panel">
+            <div class="stats-badge"><span id="robot-icon">⚙️</span> <span id="robot-name-display">Бот</span></div>
+            <div class="stats-badge" style="color: var(--orange)">⭐ <span id="xp-display">0</span></div>
+        </div>
+        <div class="map-bg">
+            <div class="island" onclick="startLevel('letters')">
+                <span style="font-size: 3.5rem;">🅰️</span>
+                <div class="island-label">Остров Букв</div>
+            </div>
+            <div class="island" id="isl-syllables" onclick="startLevel('syllables')">
+                <span style="font-size: 3.5rem;">🧩</span>
+                <div class="island-label">Остров Слогов</div>
+            </div>
+            <div class="island" id="isl-words" onclick="startLevel('words')">
+                <span style="font-size: 3.5rem;">💎</span>
+                <div class="island-label">Город Слов</div>
+            </div>
         </div>
     </div>
 
-    <div id="screen-menu" class="screen active">
-        <h2 style="color: var(--blue); margin-top: 10px;">Чему научимся сегодня?</h2>
-        <div id="levels-list"></div>
-    </div>
-
-    <div id="screen-game" class="screen">
-        <div class="progress-header">
-            <button class="back-btn" onclick="showMenu()">🔙</button>
-            <div class="progress-line"><div id="game-progress-fill" class="progress-line-fill"></div></div>
+    <div id="screen-game" class="screen game-screen">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <button onclick="showMap()" style="background: none; border: none; font-size: 2.5rem; cursor: pointer;">🗺️</button>
+            <div id="progress-tag" style="background: #eee; padding: 5px 15px; border-radius: 10px; font-weight: bold;">1 / 33</div>
         </div>
-        
-        <div class="main-content">
-            <div id="display-emoji" style="font-size: 6rem; margin-bottom: 10px;"></div>
-            <div id="display-text" class="big-char">А</div>
-            <div id="display-word" style="font-size: 2rem; font-weight: bold; margin-bottom: 30px; height: 2.5rem;"></div>
-            
-            <button class="btn-action" onclick="handleSpeak()">🔊 ПОСЛУШАТЬ</button>
-            <button class="btn-action" style="background: var(--blue); border-bottom-color: var(--blue-dark);" onclick="nextStep()">ДАЛЬШЕ ➡️</button>
+        <div id="game-content" style="flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div id="game-emoji" style="font-size: 6rem;">🍎</div>
+            <div id="game-char" class="big-char">А</div>
+            <div id="game-word" style="font-size: 2.8rem; font-weight: bold; color: #333; margin-bottom: 30px;">АРБУЗ</div>
+            <button class="game-btn" onclick="nextStep()">ДАЛЬШЕ 🔊</button>
         </div>
     </div>
 </div>
 
 <script>
-    const gameData = {
+    const data = {
         letters: [
-            { t: 'А', w: 'Арбуз', e: '🍉' }, { t: 'Б', w: 'Барабан', e: '🥁' }, { t: 'В', w: 'Вишня', e: '🍒' },
-            { t: 'Г', w: 'Гитара', e: '🎸' }, { t: 'Д', w: 'Дом', e: '🏠' }, { t: 'Е', w: 'Енот', e: '🦝' },
-            { t: 'Ё', w: 'Ёжик', e: '🦔' }, { t: 'Ж', w: 'Жираф', e: '🦒' }, { t: 'З', w: 'Зебра', e: '🦓' },
-            { t: 'И', w: 'Иголка', e: '🪡' }, { t: 'Й', w: 'Йогурт', e: '🍦' }, { t: 'К', w: 'Кот', e: '🐈' },
-            { t: 'Л', w: 'Лев', e: '🦁' }, { t: 'М', w: 'Мяч', e: '⚽' }, { t: 'Н', w: 'Носки', e: '🧦' },
-            { t: 'О', w: 'Очки', e: '👓' }, { t: 'П', w: 'Петух', e: '🐓' }, { t: 'Р', w: 'Рыба', e: '🐟' },
-            { t: 'С', w: 'Слон', e: '🐘' }, { t: 'Т', w: 'Торт', e: '🎂' }, { t: 'У', w: 'Утка', e: '🦆' },
-            { t: 'Ф', w: 'Флаг', e: '🚩' }, { t: 'Х', w: 'Хлеб', e: '🍞' }, { t: 'Ц', w: 'Цветок', e: '🌸' },
-            { t: 'Ч', w: 'Часы', e: '⌚' }, { t: 'Ш', w: 'Шарик', e: '🎈' }, { t: 'Щ', w: 'Щетка', e: '🪥' },
-            { t: 'Ъ', w: 'Объезд', e: '🚧' }, { t: 'Ы', w: 'Мышь', e: '🐭' }, { t: 'Ь', w: 'Медведь', e: '🧸' },
-            { t: 'Э', w: 'Экран', e: '📺' }, { t: 'Ю', w: 'Юбка', e: '👗' }, { t: 'Я', w: 'Яблоко', e: '🍎' }
+            {t:'А', w:'Арбуз', e:'🍉'}, {t:'Б', w:'Барабан', e:'🥁'}, {t:'В', w:'Вишня', e:'🍒'}, {t:'Г', w:'Гитара', e:'🎸'},
+            {t:'Д', w:'Дом', e:'🏠'}, {t:'Е', w:'Енот', e:'🦝'}, {t:'Ё', w:'Ёжик', e:'🦔'}, {t:'Ж', w:'Жираф', e:'🦒'},
+            {t:'З', w:'Зебра', e:'🦓'}, {t:'И', w:'Иголка', e:'🪡'}, {t:'Й', w:'Йогурт', e:'🍦'}, {t:'К', w:'Кот', e:'🐈'},
+            {t:'Л', w:'Лев', e:'🦁'}, {t:'М', w:'Мяч', e:'⚽'}, {t:'Н', w:'Носки', e:'🧦'}, {t:'О', w:'Очки', e:'👓'},
+            {t:'П', w:'Петух', e:'🐓'}, {t:'Р', w:'Рыба', e:'🐟'}, {t:'С', w:'Слон', e:'🐘'}, {t:'Т', w:'Торт', e:'🎂'},
+            {t:'У', w:'Утка', e:'🦆'}, {t:'Ф', w:'Флаг', e:'🚩'}, {t:'Х', w:'Хлеб', e:'🍞'}, {t:'Ц', w:'Цветок', e:'🌸'},
+            {t:'Ч', w:'Часы', e:'⌚'}, {t:'Ш', w:'Шарик', e:'🎈'}, {t:'Щ', w:'Щетка', e:'🪥'}, {t:'Ъ', w:'Объезд', e:'🚧'},
+            {t:'Ы', w:'Мышь', e:'🐭'}, {t:'Ь', w:'Медведь', e:'🧸'}, {t:'Э', w:'Экран', e:'📺'}, {t:'Ю', w:'Юбка', e:'👗'}, {t:'Я', w:'Яблоко', e:'🍎'}
         ],
         syllables: [
-            { t: 'МА', w: 'МА-МА', e: '👩' }, { t: 'ПА', w: 'ПА-ПА', e: '👨' }, { t: 'БА', w: 'БА-БА', e: '👵' },
-            { t: 'КО', w: 'КО-Т', e: '🐈' }, { t: 'МО', w: 'МО-РЕ', e: '🌊' }, { t: 'ЛУ', w: 'ЛУ-НА', e: '🌙' }
+            {t:'МА', w:'МА-МА', e:'👩'}, {t:'ПА', w:'ПА-ПА', e:'👨'}, {t:'БА', w:'БА-БА', e:'👵'}, {t:'КО', w:'КО-Ш-КА', e:'🐈'},
+            {t:'МО', w:'МО-РЕ', e:'🌊'}, {t:'ЛУ', w:'ЛУ-НА', e:'🌙'}, {t:'ДО', w:'ДО-МИК', e:'🏠'}
         ],
         words: [
-            { t: 'МАМА', e: '❤️' }, { t: 'ПАПА', e: '🏠' }, { t: 'КОТ', e: '🐈' },
-            { t: 'ДОМ', e: '🏘️' }, { t: 'РЫБА', e: '🐟' }, { t: 'ЛЕС', e: '🌲' }
+            {t:'МАМА', e:'❤️'}, {t:'ПАПА', e:'🏠'}, {t:'КОТ', e:'🐈'}, {t:'ДОМ', e:'🏘️'}, {t:'РЫБА', e:'🐟'}, {t:'ЛУНА', e:'🌙'}
         ]
     };
 
-    const levels = [
-        { id: 'letters', title: 'Учим буквы', icon: '🅰️', desc: 'Основы алфавита' },
-        { id: 'syllables', title: 'Складываем слоги', icon: '🧩', desc: 'Первые шаги к чтению' },
-        { id: 'words', title: 'Целые слова', icon: '🐱', desc: 'Учимся читать быстро' }
-    ];
+    let state = JSON.parse(localStorage.getItem('abc_v8_save')) || { xp: 0, robotName: '', unlocked: ['letters'] };
+    let curLvl = null, curIdx = 0;
 
-    let state = JSON.parse(localStorage.getItem('abc_v5_state')) || { xp: 0 };
-    let currentLvlId = null;
-    let currentIndex = 0;
-
-    function updateAvatar() {
-        const avatar = document.getElementById('user-avatar');
-        const nameText = document.getElementById('robot-name');
-        const xpFill = document.getElementById('xp-fill');
-        const xpText = document.getElementById('xp-text');
-
-        if (state.xp < 100) { avatar.textContent = '⚙️'; nameText.textContent = 'Робот-ученик'; }
-        else if (state.xp < 300) { avatar.textContent = '🤖'; nameText.textContent = 'Умный Бот'; }
-        else { avatar.textContent = '🚀'; nameText.textContent = 'Супер-Мозг'; }
-
-        const progress = Math.min((state.xp / 500) * 100, 100);
-        xpFill.style.width = progress + '%';
-        xpText.textContent = state.xp;
-        localStorage.setItem('abc_v5_state', JSON.stringify(state));
-    }
-
-    function showMenu() {
-        document.getElementById('screen-menu').classList.add('active');
-        document.getElementById('screen-game').classList.remove('active');
-        renderMenu();
-    }
-
-    function renderMenu() {
-        const list = document.getElementById('levels-list');
-        list.innerHTML = levels.map(l => `
-            <div class="level-card" onclick="startLevel('${l.id}')">
-                <div style="font-size: 2.5rem; margin-right: 20px;">${l.icon}</div>
-                <div style="text-align: left;">
-                    <div style="font-weight: bold; font-size: 1.2rem;">${l.title}</div>
-                    <div style="font-size: 0.85rem; color: #999;">${l.desc}</div>
-                </div>
-            </div>
-        `).join('');
-    }
-
-    function startLevel(id) {
-        currentLvlId = id;
-        currentIndex = 0;
-        document.getElementById('screen-menu').classList.remove('active');
-        document.getElementById('screen-game').classList.add('active');
-        updateGameUI();
-    }
-
-    function updateGameUI() {
-        const items = gameData[currentLvlId];
-        const item = items[currentIndex];
-        document.getElementById('display-text').textContent = item.t;
-        document.getElementById('display-word').textContent = item.w || '';
-        document.getElementById('display-emoji').textContent = item.e || '';
-        
-        const prog = ((currentIndex + 1) / items.length) * 100;
-        document.getElementById('game-progress-fill').style.width = prog + '%';
-        
-        handleSpeak();
-    }
-
-    function nextStep() {
-        state.xp += 10;
-        updateAvatar();
-
-        if (currentIndex < gameData[currentLvlId].length - 1) {
-            currentIndex++;
-            updateGameUI();
-        } else {
-            playVictory();
-            alert("ПОЗДРАВЛЯЕМ! Уровень пройден! ⭐");
-            showMenu();
-        }
-    }
-
-    function handleSpeak() {
-        const item = gameData[currentLvlId][currentIndex];
-        speak(item.t + (item.w ? "... " + item.w : ""));
-    }
+    function save() { localStorage.setItem('abc_v8_save', JSON.stringify(state)); updateMap(); }
 
     function speak(text) {
         window.speechSynthesis.cancel();
         const ut = new SpeechSynthesisUtterance(text);
         ut.lang = 'ru-RU';
-        ut.rate = 0.85;
-        ut.pitch = 1.25;
+        ut.rate = 0.8;
+        ut.pitch = 1.35; // Делаем голос более детским и мягким
         window.speechSynthesis.speak(ut);
     }
 
-    function playVictory() {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        [523, 659, 783, 1046].forEach((f, i) => {
-            const osc = ctx.createOscillator();
-            const g = ctx.createGain();
-            osc.frequency.value = f;
-            g.gain.setValueAtTime(0.1, ctx.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1);
-            osc.connect(g); g.connect(ctx.destination);
-            osc.start(ctx.currentTime + i * 0.1); osc.stop(ctx.currentTime + 1);
+    function saveRobotName() {
+        const val = document.getElementById('robot-name-input').value.trim();
+        if(!val) return alert("Дай мне имя!");
+        state.robotName = val;
+        speak(`Привет! Я ${state.robotName}. Давай учиться читать вместе! Нажми на первый остров.`);
+        showMap();
+        save();
+    }
+
+    function updateMap() {
+        document.getElementById('robot-name-display').textContent = state.robotName;
+        document.getElementById('xp-display').textContent = state.xp;
+        document.getElementById('robot-icon').textContent = state.xp > 150 ? '🚀' : (state.xp > 50 ? '🤖' : '⚙️');
+        
+        ['syllables', 'words'].forEach(id => {
+            const el = document.getElementById('isl-' + id);
+            if(state.unlocked.includes(id)) el.classList.remove('locked');
+            else el.classList.add('locked');
         });
     }
 
-    updateAvatar();
-    renderMenu();
+    function showMap() {
+        if(!state.robotName) return;
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-map').classList.add('active');
+        updateMap();
+    }
+
+    function startLevel(id) {
+        if(id !== 'letters' && !state.unlocked.includes(id)) return speak("Сначала пройди предыдущий остров!");
+        curLvl = id; curIdx = 0;
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById('screen-game').classList.add('active');
+        updateGame();
+    }
+
+    function updateGame() {
+        const item = data[curLvl][curIdx];
+        document.getElementById('game-char').textContent = item.t;
+        document.getElementById('game-word').textContent = item.w || '';
+        document.getElementById('game-emoji').textContent = item.e || '';
+        document.getElementById('progress-tag').textContent = `${curIdx + 1} / ${data[curLvl].length}`;
+        speak(item.t + (item.w ? "... " + item.w : ""));
+    }
+
+    function nextStep() {
+        state.xp += 5;
+        if(curIdx < data[curLvl].length - 1) {
+            curIdx++;
+            updateGame();
+        } else {
+            if(curLvl === 'letters') state.unlocked.push('syllables');
+            if(curLvl === 'syllables') state.unlocked.push('words');
+            speak("Ура! Мы нашли сокровища! Остров пройден!");
+            showMap();
+        }
+        save();
+    }
+
+    if(state.robotName) showMap();
 </script>
 </body>
 </html>
