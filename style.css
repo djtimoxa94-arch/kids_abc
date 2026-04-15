@@ -1,0 +1,93 @@
+:root {
+    --primary-color: #FF9A9E;
+    --bg-color: #FECFEF;
+    --text-color: #333;
+    --card-bg: #FFFFFF;
+}
+
+body {
+    margin: 0;
+    font-family: 'Comic Sans MS', 'Arial Rounded MT Bold', sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.app-container {
+    width: 100%;
+    max-width: 400px;
+    padding: 20px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+h1 {
+    color: #FF6B6B;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 0px #fff;
+}
+
+.card {
+    background: var(--card-bg);
+    border-radius: 30px;
+    padding: 30px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.letter {
+    font-size: 7rem;
+    font-weight: bold;
+    color: #4ECDC4;
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.word {
+    font-size: 2.5rem;
+    color: #45B7D1;
+    margin-bottom: 30px;
+    font-weight: bold;
+}
+
+.btn-play {
+    background: #FFD166;
+    border: none;
+    border-radius: 50px;
+    padding: 15px 30px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #E5B951;
+    transition: transform 0.1s;
+    color: #333;
+    font-weight: bold;
+}
+
+.btn-play:active {
+    transform: translateY(5px);
+    box-shadow: none;
+}
+
+.controls {
+    display: flex;
+    justify-content: space-between;
+}
+
+.btn-nav {
+    background: #FFF;
+    border: 2px solid #ddd;
+    padding: 15px 20px;
+    border-radius: 15px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    box-shadow: 0 4px 0 #ccc;
+}
+.btn-nav:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}

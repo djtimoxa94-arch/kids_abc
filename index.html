@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Учим Буквы!</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>Азбука</h1>
+        </header>
+        
+        <main class="card">
+            <div id="letter-display" class="letter">А</div>
+            <!-- Заглушка для картинки (используем эмодзи если нет файла) -->
+            <div id="emoji-display" style="font-size: 5rem; margin-bottom: 20px;">🍉</div>
+            <div id="word-display" class="word">Арбуз</div>
+            
+            <button id="play-sound" class="btn-play">
+                🔊 Послушать
+            </button>
+        </main>
+
+        <div class="controls">
+            <button id="btn-prev" class="btn-nav">⬅️ Назад</button>
+            <button id="btn-next" class="btn-nav">Вперед ➡️</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+            .then(reg => console.log('Service Worker зарегистрирован', reg))
+            .catch(err => console.log('Ошибка регистрации SW', err));
+        }
+    </script>
+</body>
+</html>
