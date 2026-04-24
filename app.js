@@ -1,10 +1,8 @@
 /* ═══════════════════════════════════════════════════════════
-   АЗБУКА: ОСТРОВ СОКРОВИЩ  — app.js v9
+   АЗБУКА: ОСТРОВ СОКРОВИЩ  — app.js v10
+   Fixes: TTS (voice loading + delay), progress (save on card render)
 ═══════════════════════════════════════════════════════════ */
 
-// ─────────────────────────────────────────
-// ДАННЫЕ
-// ─────────────────────────────────────────
 const DATA = {
     letters: [
         {t:'А', w:'АРБУЗ',    e:'🍉'},
@@ -34,15 +32,14 @@ const DATA = {
         {t:'Ч', w:'ЧАСЫ',     e:'⌚'},
         {t:'Ш', w:'ШАРИК',    e:'🎈'},
         {t:'Щ', w:'ЩЁТКА',    e:'🪥'},
-        {t:'Ъ', w:'ОБЪ-ЕКТ', e:'📦', special: true},  // твёрдый знак
-        {t:'Ы', w:'МЫ-ЛО',   e:'🧼', special: true},  // ы в середине
+        {t:'Ъ', w:'ОБЪЕКТ',   e:'📦', special:true},
+        {t:'Ы', w:'МЫЛО',     e:'🧼', special:true},
         {t:'Ь', w:'МЕДВЕДЬ',  e:'🐻'},
         {t:'Э', w:'ЭКРАН',    e:'📺'},
         {t:'Ю', w:'ЮБКА',     e:'👗'},
         {t:'Я', w:'ЯБЛОКО',   e:'🍎'},
     ],
     syllables: [
-        // А-слоги
         {t:'МА', w:'МА-МА',    e:'👩'},
         {t:'ПА', w:'ПА-ПА',    e:'👨'},
         {t:'БА', w:'БА-БА',    e:'👵'},
@@ -53,7 +50,6 @@ const DATA = {
         {t:'СА', w:'СА-НИ',    e:'🛷'},
         {t:'ТА', w:'ТА-ЧКА',   e:'🚜'},
         {t:'НА', w:'НА-ЧА-ЛО', e:'🌟'},
-        // О-слоги
         {t:'МО', w:'МО-РЕ',    e:'🌊'},
         {t:'КО', w:'КО-ШКА',   e:'🐈'},
         {t:'ДО', w:'ДО-ЖДЬ',   e:'🌧️'},
@@ -62,21 +58,18 @@ const DATA = {
         {t:'СО', w:'СО-КОЛ',   e:'🦅'},
         {t:'НО', w:'НОЖ',      e:'🔪'},
         {t:'ЛО', w:'ЛОБ',      e:'😊'},
-        // У-слоги
         {t:'МУ', w:'МУ-ХА',    e:'🪰'},
         {t:'КУ', w:'КУ-КЛА',   e:'🪆'},
         {t:'ЛУ', w:'ЛУ-НА',    e:'🌙'},
         {t:'РУ', w:'РУ-КА',    e:'✋'},
         {t:'ТУ', w:'ТУ-ЧА',    e:'⛈️'},
         {t:'ДУ', w:'ДУБ',      e:'🌳'},
-        // И-слоги
         {t:'МИ', w:'МИ-ШКА',   e:'🧸'},
         {t:'НИ', w:'НИ-ТКА',   e:'🧵'},
         {t:'РИ', w:'РИС',      e:'🍚'},
         {t:'КИ', w:'КИТ',      e:'🐋'},
-        // Е-слоги
         {t:'МЕ', w:'МЕД',      e:'🍯'},
-        {t:'НЕ', w:'НЕ-БО',    e:'☀️'},
+        {t:'НЕ', w:'НЕ-БО',    e:'☁️'},
         {t:'РЕ', w:'РЕ-КА',    e:'🏞️'},
         {t:'ЛЕ', w:'ЛЕС',      e:'🌲'},
         {t:'ДЕ', w:'ДЕ-РЕ-ВО', e:'🌴'},
@@ -111,214 +104,176 @@ const DATA = {
 };
 
 const BADGES = [
-    { id: 'letters_done',   e: '🔤', name: 'Знаток Букв',      cond: s => s.completed.includes('letters') },
-    { id: 'syllables_done', e: '📖', name: 'Мастер Слогов',    cond: s => s.completed.includes('syllables') },
-    { id: 'words_done',     e: '📚', name: 'Читатель',          cond: s => s.completed.includes('words') },
-    { id: 'streak_3',       e: '🔥', name: 'Серия 3 дня',       cond: s => s.streak >= 3 },
-    { id: 'xp_100',         e: '⭐', name: 'Первая Сотня',      cond: s => s.xp >= 100 },
-    { id: 'xp_300',         e: '🚀', name: 'Суперзнайка',       cond: s => s.xp >= 300 },
+    { id:'letters_done',   e:'🔤', name:'Знаток Букв',   cond:s=>s.completed.includes('letters') },
+    { id:'syllables_done', e:'📖', name:'Мастер Слогов', cond:s=>s.completed.includes('syllables') },
+    { id:'words_done',     e:'📚', name:'Читатель',       cond:s=>s.completed.includes('words') },
+    { id:'streak_3',       e:'🔥', name:'Серия 3 дня',    cond:s=>s.streak>=3 },
+    { id:'xp_100',         e:'⭐', name:'Первая Сотня',   cond:s=>s.xp>=100 },
+    { id:'xp_300',         e:'🚀', name:'Суперзнайка',    cond:s=>s.xp>=300 },
 ];
 
-// ─────────────────────────────────────────
-// СОСТОЯНИЕ
-// ─────────────────────────────────────────
-let state = JSON.parse(localStorage.getItem('abc_v9_save')) || {
-    xp: 0,
-    robotName: '',
-    unlocked: ['letters'],
-    completed: [],
-    progress: { letters: 0, syllables: 0, words: 0 },
-    badges: [],
-    streak: 0,
-    lastPlayDate: null,
-};
+/* ─── СОСТОЯНИЕ ─── */
+const SAVE_KEY = 'abc_v10_save';
 
-let curLvl  = null;
-let curIdx  = 0;
+function defaultState() {
+    return { xp:0, robotName:'', unlocked:['letters'], completed:[],
+             progress:{letters:0, syllables:0, words:0},
+             badges:[], streak:0, lastPlayDate:null };
+}
+
+let state;
+try {
+    // миграция: пробуем v10, потом v9
+    const raw = localStorage.getItem(SAVE_KEY) || localStorage.getItem('abc_v9_save');
+    state = raw ? Object.assign(defaultState(), JSON.parse(raw)) : defaultState();
+    state.progress = Object.assign({letters:0,syllables:0,words:0}, state.progress);
+} catch(e) { state = defaultState(); }
+
+let curLvl = null;
+let curIdx = 0;
 let correctAnswer = null;
 
-// ─────────────────────────────────────────
-// АУДИО (Web Audio API, без файлов)
-// ─────────────────────────────────────────
+/* ─── TTS ─── */
+let ruVoice   = null;
+let voicesOK  = false;
+let pendingTxt = null;
+
+function loadVoices() {
+    const all = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+    if (!all.length) return;
+    voicesOK = true;
+    ruVoice  = all.find(v=>v.lang==='ru-RU'&&v.localService)
+            || all.find(v=>v.lang==='ru-RU')
+            || all.find(v=>v.lang.startsWith('ru'))
+            || null;
+    if (pendingTxt) { _doSpeak(pendingTxt); pendingTxt=null; }
+}
+
+if (window.speechSynthesis) {
+    speechSynthesis.addEventListener('voiceschanged', loadVoices);
+    loadVoices(); // Chrome может уже иметь голоса
+}
+
+function _doSpeak(txt) {
+    try {
+        speechSynthesis.cancel();
+        setTimeout(()=>{
+            const u = new SpeechSynthesisUtterance(txt.replace(/-/g,' '));
+            u.lang='ru-RU'; u.rate=0.82; u.pitch=1.2;
+            if (ruVoice) u.voice = ruVoice;
+            speechSynthesis.speak(u);
+        }, 90);
+    } catch(e) {}
+}
+
+function speak(txt) {
+    if (!window.speechSynthesis) return;
+    if (!voicesOK) { pendingTxt = txt; return; }
+    _doSpeak(txt);
+}
+
+/* ─── АУДИО ─── */
 function playSound(type) {
     try {
-        const ac = new (window.AudioContext || window.webkitAudioContext)();
-        if (type === 'correct') {
-            [[523,0],[659,.12],[784,.24]].forEach(([f,d]) => {
-                const o = ac.createOscillator(), g = ac.createGain();
-                o.connect(g); g.connect(ac.destination);
-                o.frequency.value = f;
-                g.gain.setValueAtTime(0.22, ac.currentTime+d);
-                g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+d+0.35);
-                o.start(ac.currentTime+d);
-                o.stop(ac.currentTime+d+0.35);
-            });
-        } else if (type === 'wrong') {
-            const o = ac.createOscillator(), g = ac.createGain();
-            o.type = 'sawtooth'; o.connect(g); g.connect(ac.destination);
-            o.frequency.setValueAtTime(240, ac.currentTime);
-            o.frequency.exponentialRampToValueAtTime(110, ac.currentTime+0.35);
-            g.gain.setValueAtTime(0.2, ac.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.35);
+        const ac = new (window.AudioContext||window.webkitAudioContext)();
+        const tone = (f,d,dur=0.35) => {
+            const o=ac.createOscillator(), g=ac.createGain();
+            o.connect(g); g.connect(ac.destination);
+            o.frequency.value=f;
+            g.gain.setValueAtTime(0.22,ac.currentTime+d);
+            g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+d+dur);
+            o.start(ac.currentTime+d); o.stop(ac.currentTime+d+dur);
+        };
+        if (type==='correct') { tone(523,0); tone(659,.12); tone(784,.24); }
+        else if (type==='wrong') {
+            const o=ac.createOscillator(),g=ac.createGain();
+            o.type='sawtooth'; o.connect(g); g.connect(ac.destination);
+            o.frequency.setValueAtTime(240,ac.currentTime);
+            o.frequency.exponentialRampToValueAtTime(110,ac.currentTime+0.35);
+            g.gain.setValueAtTime(0.2,ac.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.001,ac.currentTime+0.35);
             o.start(ac.currentTime); o.stop(ac.currentTime+0.35);
-        } else if (type === 'victory') {
-            [[523,0],[659,.18],[784,.36],[1047,.54]].forEach(([f,d]) => {
-                const o = ac.createOscillator(), g = ac.createGain();
-                o.connect(g); g.connect(ac.destination);
-                o.frequency.value = f;
-                g.gain.setValueAtTime(0.22, ac.currentTime+d);
-                g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+d+0.45);
-                o.start(ac.currentTime+d);
-                o.stop(ac.currentTime+d+0.45);
-            });
-        } else if (type === 'tap') {
-            const o = ac.createOscillator(), g = ac.createGain();
-            o.frequency.value = 440; o.connect(g); g.connect(ac.destination);
-            g.gain.setValueAtTime(0.08, ac.currentTime);
-            g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime+0.08);
-            o.start(ac.currentTime); o.stop(ac.currentTime+0.08);
-        }
-    } catch(e) {}
+        } else if (type==='victory') { tone(523,0,.45);tone(659,.18,.45);tone(784,.36,.45);tone(1047,.54,.45); }
+        else if (type==='tap') { tone(440,0,0.08); }
+    } catch(e){}
 }
 
-// ─────────────────────────────────────────
-// ВИБРАЦИЯ
-// ─────────────────────────────────────────
-function vib(pattern) {
-    try { if ('vibrate' in navigator) navigator.vibrate(pattern); } catch(e) {}
-}
+function vib(p){ try{ navigator.vibrate&&navigator.vibrate(p); }catch(e){} }
 
-// ─────────────────────────────────────────
-// ОЗВУЧКА (TTS с fallback)
-// ─────────────────────────────────────────
-function speak(text) {
-    try {
-        if (!window.speechSynthesis) return;
-        window.speechSynthesis.cancel();
-        const ut = new SpeechSynthesisUtterance(text.replace(/-/g, ' '));
-        ut.lang = 'ru-RU'; ut.rate = 0.78; ut.pitch = 1.25;
-        window.speechSynthesis.speak(ut);
-    } catch(e) {}
-}
+/* ─── СОХРАНЕНИЕ ─── */
+function save() { try{ localStorage.setItem(SAVE_KEY,JSON.stringify(state)); }catch(e){} }
 
-// ─────────────────────────────────────────
-// СОХРАНЕНИЕ
-// ─────────────────────────────────────────
-function save() {
-    localStorage.setItem('abc_v9_save', JSON.stringify(state));
-}
-
-// ─────────────────────────────────────────
-// СТРИК (серия дней)
-// ─────────────────────────────────────────
+/* ─── СТРИК ─── */
 function updateStreak() {
-    const today     = new Date().toDateString();
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
-    if (state.lastPlayDate === today) return;
-    state.streak = (state.lastPlayDate === yesterday) ? state.streak + 1 : 1;
+    const today=new Date().toDateString(), yest=new Date(Date.now()-86400000).toDateString();
+    if (state.lastPlayDate===today) return;
+    state.streak = state.lastPlayDate===yest ? state.streak+1 : 1;
     state.lastPlayDate = today;
 }
 
-// ─────────────────────────────────────────
-// ЗНАЧКИ
-// ─────────────────────────────────────────
+/* ─── ЗНАЧКИ ─── */
 function checkBadges() {
-    let newBadge = null;
-    BADGES.forEach(b => {
-        if (!state.badges.includes(b.id) && b.cond(state)) {
-            state.badges.push(b.id);
-            if (!newBadge) newBadge = b;
-        }
-    });
-    return newBadge;
+    let nb=null;
+    BADGES.forEach(b=>{ if(!state.badges.includes(b.id)&&b.cond(state)){ state.badges.push(b.id); nb=nb||b; } });
+    return nb;
 }
-
 function renderBadges() {
-    const panel = document.getElementById('badges-panel');
-    if (!panel) return;
-    const earned = BADGES.filter(b => state.badges.includes(b.id));
-    panel.innerHTML = earned.length === 0 ? '' :
-        '<div class="badges-title">Мои значки</div>' +
-        earned.map(b => `<div class="badge-chip">${b.e} ${b.name}</div>`).join('');
+    const p=document.getElementById('badges-panel'); if(!p) return;
+    const earned=BADGES.filter(b=>state.badges.includes(b.id));
+    p.innerHTML=earned.length?'<div class="badges-title">Мои значки</div>'+earned.map(b=>`<div class="badge-chip">${b.e} ${b.name}</div>`).join(''):'';
 }
 
-// ─────────────────────────────────────────
-// КАРТА
-// ─────────────────────────────────────────
+/* ─── КАРТА ─── */
 function updateMap() {
-    const { robotName, xp, streak, unlocked, completed, progress } = state;
-    document.getElementById('robot-name-display').textContent = robotName;
-    document.getElementById('xp-display').textContent = xp;
-    document.getElementById('streak-display').textContent = streak;
-    document.getElementById('robot-icon').textContent = xp >= 300 ? '🚀' : xp >= 100 ? '🤖' : '⚙️';
-
-    ['syllables','words'].forEach(id => {
-        const el = document.getElementById('isl-'+id);
-        if (unlocked.includes(id)) el.classList.remove('locked');
-        else el.classList.add('locked');
+    const {robotName,xp,streak,unlocked,completed,progress}=state;
+    document.getElementById('robot-name-display').textContent=robotName;
+    document.getElementById('xp-display').textContent=xp;
+    document.getElementById('streak-display').textContent=streak;
+    document.getElementById('robot-icon').textContent=xp>=300?'🚀':xp>=100?'🤖':'⚙️';
+    ['syllables','words'].forEach(id=>{
+        document.getElementById('isl-'+id).classList.toggle('locked',!unlocked.includes(id));
     });
-
-    ['letters','syllables','words'].forEach(id => {
-        const el = document.getElementById('prog-'+id);
-        if (!el) return;
-        const done  = progress[id] || 0;
-        const total = DATA[id].length;
-        if (completed.includes(id)) {
-            el.textContent = '✅'; el.style.display = 'block';
-        } else if (done > 0) {
-            el.textContent = `${done}/${total}`; el.style.display = 'block';
-        } else {
-            el.style.display = 'none';
-        }
+    ['letters','syllables','words'].forEach(id=>{
+        const el=document.getElementById('prog-'+id); if(!el) return;
+        const done=progress[id]||0, total=DATA[id].length;
+        if (completed.includes(id))      { el.textContent='✅'; el.style.display='block'; }
+        else if (done>0)                 { el.textContent=`${done}/${total}`; el.style.display='block'; }
+        else                             { el.style.display='none'; }
     });
-
     renderBadges();
 }
 
-// ─────────────────────────────────────────
-// НАВИГАЦИЯ
-// ─────────────────────────────────────────
+/* ─── НАВИГАЦИЯ ─── */
 function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
 
 function showMap() {
-    if (curLvl) { state.progress[curLvl] = curIdx; save(); }
+    if (curLvl!==null) { state.progress[curLvl]=curIdx; save(); }
     showScreen('screen-map');
     updateMap();
 }
 
-function goMap() {
-    playSound('tap'); vib([30]);
-    showMap();
-}
+function goMap() { playSound('tap'); vib([30]); showMap(); }
 
-// ─────────────────────────────────────────
-// НАСТРОЙКА
-// ─────────────────────────────────────────
+/* ─── НАСТРОЙКА ─── */
 function saveRobotName() {
-    const val = document.getElementById('robot-name-input').value.trim();
+    const val=document.getElementById('robot-name-input').value.trim();
     if (!val) { alert('Дай мне имя! 🤖'); return; }
     playSound('tap'); vib([50]);
-    state.robotName = val;
+    state.robotName=val;
     updateStreak(); save();
-    speak(`Привет! Я ${val}. Давай учиться читать вместе!`);
+    speak('Привет! Давай учиться!');
     showMap();
 }
 
-// ─────────────────────────────────────────
-// ИГРОВОЙ ПОТОК
-// ─────────────────────────────────────────
+/* ─── УРОВЕНЬ ─── */
 function startLevel(id) {
-    if (id !== 'letters' && !state.unlocked.includes(id)) {
-        vib([100,50,100]);
-        speak('Этот остров ещё закрыт! Пройди предыдущий!');
-        return;
-    }
-    curLvl = id;
-    curIdx = state.progress[id] || 0;
-    if (curIdx >= DATA[id].length) curIdx = 0;
+    if (!state.unlocked.includes(id)) { vib([100,50,100]); speak('Этот остров ещё закрыт!'); return; }
+    curLvl=id;
+    const saved=state.progress[id];
+    curIdx=(Number.isFinite(saved)&&saved<DATA[id].length) ? saved : 0;
     updateStreak(); save();
     showScreen('screen-game');
     showPhase('card');
@@ -326,229 +281,152 @@ function startLevel(id) {
 }
 
 function renderCard() {
-    const item = DATA[curLvl][curIdx];
+    const item=DATA[curLvl][curIdx];
 
-    // Adjust big-char font size for long tokens (syllables/words)
-    const charEl = document.getElementById('card-char');
-    charEl.textContent = item.t;
-    const len = item.t.length;
-    charEl.style.fontSize = len >= 6 ? '3.5rem' : len >= 4 ? '5rem' : len >= 2 ? '6.5rem' : '9rem';
+    // размер шрифта по длине
+    const charEl=document.getElementById('card-char');
+    charEl.textContent=item.t;
+    const L=item.t.length;
+    charEl.style.fontSize=L>=6?'3rem':L>=4?'5rem':L>=2?'6.5rem':'9rem';
 
-    document.getElementById('card-emoji').textContent = item.e;
-    document.getElementById('card-word').textContent  = item.w || '';
-    document.getElementById('progress-tag').textContent = `${curIdx+1} / ${DATA[curLvl].length}`;
+    document.getElementById('card-emoji').textContent=item.e;
+    document.getElementById('card-word').textContent=item.w||'';
+    document.getElementById('progress-tag').textContent=`${curIdx+1} / ${DATA[curLvl].length}`;
 
-    const speechText = item.special
-        ? `Буква ${item.t}. Слово ${item.w ? item.w.replace(/-/g,' ') : ''}`
-        : `${item.t}${item.w ? '... ' + item.w.replace(/-/g,' ') : ''}`;
-    speak(speechText);
+    // ★ СОХРАНЯЕМ ПОЗИЦИЮ сразу при показе карточки
+    state.progress[curLvl]=curIdx;
+    save();
+
+    // TTS
+    const word=(item.w||'').replace(/-/g,' ');
+    speak(curLvl==='words' ? item.t : (word ? `${item.t}... ${word}` : item.t));
 }
 
-function speakCurrent() {
-    vib([30]);
-    if (curLvl) renderCard();
-}
+function speakCurrent() { vib([30]); if(curLvl) renderCard(); }
 
 function showPhase(name) {
-    ['card','quiz','feedback'].forEach(p => {
-        const el = document.getElementById('phase-'+p);
-        el.classList.toggle('hidden', p !== name);
+    ['card','quiz','feedback'].forEach(p=>{
+        document.getElementById('phase-'+p).classList.toggle('hidden',p!==name);
     });
 }
 
-// ─────────────────────────────────────────
-// ВИКТОРИНА
-// ─────────────────────────────────────────
+/* ─── ВИКТОРИНА ─── */
 function startQuiz() {
     playSound('tap'); vib([30]);
+    const item=DATA[curLvl][curIdx];
+    correctAnswer=item.t;
 
-    const item = DATA[curLvl][curIdx];
-    correctAnswer = item.t;
+    const pool=DATA[curLvl].filter((_,i)=>i!==curIdx).map(x=>x.t)
+               .sort(()=>Math.random()-.5).slice(0,3);
+    const opts=[...pool,item.t].sort(()=>Math.random()-.5);
 
-    // 3 уникальных неправильных варианта
-    const pool = DATA[curLvl]
-        .filter((_, i) => i !== curIdx)
-        .map(x => x.t)
-        .sort(() => Math.random() - 0.5)
-        .slice(0, 3);
+    const qMap={letters:'С какой буквы начинается слово? 🤔',
+                syllables:'Найди нужный слог! 📖',
+                words:'Что на картинке? 🖼️'};
+    document.getElementById('quiz-prompt').textContent=qMap[curLvl];
+    document.getElementById('quiz-emoji').textContent=item.e;
 
-    const options = [...pool, item.t].sort(() => Math.random() - 0.5);
-
-    // Вопрос
-    const qMap = { letters: 'С какой буквой эта картинка? 🤔', syllables: 'Найди нужный слог! 📖', words: 'Что на картинке? 🖼️' };
-    document.getElementById('quiz-prompt').textContent = qMap[curLvl];
-    document.getElementById('quiz-emoji').textContent  = item.e;
-
-    // Кнопки вариантов
-    const grid = document.getElementById('quiz-options');
-    grid.innerHTML = options.map(opt => {
-        const sizeClass = opt.length >= 6 ? 'text-xs' : opt.length >= 4 ? 'text-sm' : '';
-        return `<button class="opt-btn ${sizeClass}" onclick="checkAnswer('${opt}')">${opt}</button>`;
+    document.getElementById('quiz-options').innerHTML=opts.map(o=>{
+        const cls=o.length>=6?'text-xs':o.length>=4?'text-sm':'';
+        return `<button class="opt-btn ${cls}" onclick="checkAnswer(this,'${o}')">${o}</button>`;
     }).join('');
 
     showPhase('quiz');
     speak(qMap[curLvl]);
 }
 
-function checkAnswer(chosen) {
-    const correct = chosen === correctAnswer;
-
-    // Блокируем все кнопки и подсвечиваем
-    document.querySelectorAll('.opt-btn').forEach(btn => {
-        btn.disabled = true;
-        if (btn.textContent === correctAnswer) btn.classList.add('correct');
-        if (btn.textContent === chosen && !correct) btn.classList.add('wrong');
+function checkAnswer(btn, chosen) {
+    document.querySelectorAll('.opt-btn').forEach(b=>b.disabled=true);
+    const ok=chosen===correctAnswer;
+    document.querySelectorAll('.opt-btn').forEach(b=>{
+        if (b.textContent===correctAnswer) b.classList.add('correct');
+        if (b.textContent===chosen&&!ok)  b.classList.add('wrong');
     });
-
-    if (correct) {
-        playSound('correct'); vib([50]);
-        state.xp += 10;
-    } else {
-        playSound('wrong'); vib([120, 60, 120]);
-        state.xp += 3;   // XP участия
-    }
-
-    const badge = checkBadges();
-    save();
-
-    setTimeout(() => showFeedback(correct, badge), 700);
+    if (ok) { playSound('correct'); vib([50]); state.xp+=10; }
+    else     { playSound('wrong');  vib([120,60,120]); state.xp+=3; }
+    const badge=checkBadges(); save();
+    setTimeout(()=>showFeedback(ok,badge), 750);
 }
 
-function showFeedback(correct, badge) {
-    const praises = ['Правильно!','Молодец!','Супер!','Отлично!','Так держать!'];
-    document.getElementById('fb-icon').textContent = correct ? '🎉' : '💪';
-    document.getElementById('fb-text').textContent = correct
-        ? praises[Math.floor(Math.random() * praises.length)]
-        : `Правильный ответ: ${correctAnswer}`;
-
-    let sub = correct ? '+10 ⭐' : '+3 ⭐';
-    if (badge) sub += `   ${badge.e} Новый значок!`;
-    document.getElementById('fb-sub').textContent = sub;
-
+function showFeedback(ok, badge) {
+    const praises=['Правильно!','Молодец!','Супер!','Отлично!','Умница!','Класс!'];
+    document.getElementById('fb-icon').textContent=ok?'🎉':'💪';
+    document.getElementById('fb-text').textContent=ok?praises[Math.floor(Math.random()*praises.length)]:`Правильно: ${correctAnswer}`;
+    let sub=ok?'+10 ⭐':'+3 ⭐'; if(badge) sub+=`   ${badge.e} Новый значок!`;
+    document.getElementById('fb-sub').textContent=sub;
     showPhase('feedback');
-    speak(correct ? praises[Math.floor(Math.random()*praises.length)] : `Правильно: ${correctAnswer}`);
+    speak(ok?praises[Math.floor(Math.random()*praises.length)]:`Правильно: ${correctAnswer}`);
 }
 
-// ─────────────────────────────────────────
-// СЛЕДУЮЩИЙ ШАГ
-// ─────────────────────────────────────────
+/* ─── СЛЕДУЮЩИЙ ─── */
 function nextStep() {
     playSound('tap'); vib([30]);
-
-    if (curIdx < DATA[curLvl].length - 1) {
+    if (curIdx<DATA[curLvl].length-1) {
         curIdx++;
-        state.progress[curLvl] = curIdx;
+        state.progress[curLvl]=curIdx;
         save();
         showPhase('card');
         renderCard();
     } else {
-        // Уровень пройден
-        state.progress[curLvl] = 0;
+        state.progress[curLvl]=0;
         if (!state.completed.includes(curLvl)) state.completed.push(curLvl);
-        if (curLvl === 'letters'   && !state.unlocked.includes('syllables')) state.unlocked.push('syllables');
-        if (curLvl === 'syllables' && !state.unlocked.includes('words'))     state.unlocked.push('words');
-        state.xp += 50;
-        const badge = checkBadges();
-        save();
+        if (curLvl==='letters'  &&!state.unlocked.includes('syllables')) state.unlocked.push('syllables');
+        if (curLvl==='syllables'&&!state.unlocked.includes('words'))     state.unlocked.push('words');
+        state.xp+=50; const badge=checkBadges(); save();
         showVictory(badge);
     }
 }
 
-// ─────────────────────────────────────────
-// ПОВТОР
-// ─────────────────────────────────────────
 function replayLevel() {
     playSound('tap'); vib([30]);
-    curIdx = 0;
-    state.progress[curLvl] = 0;
-    save();
-    showScreen('screen-game');
-    showPhase('card');
-    renderCard();
+    curIdx=0; state.progress[curLvl]=0; save();
+    showScreen('screen-game'); showPhase('card'); renderCard();
 }
 
-// ─────────────────────────────────────────
-// ПОБЕДА
-// ─────────────────────────────────────────
+/* ─── ПОБЕДА ─── */
 function showVictory(badge) {
-    const names = { letters: 'Острова Букв', syllables: 'Острова Слогов', words: 'Города Слов' };
-    document.getElementById('vic-icon').textContent  = '🏆';
-    document.getElementById('vic-title').textContent = `${names[curLvl]} пройден!`;
-    document.getElementById('vic-xp').textContent    = '+50 ⭐ Бонус!';
-    document.getElementById('vic-badge').innerHTML   = badge
-        ? `<div class="new-badge">${badge.e} Новый значок: ${badge.name}!</div>` : '';
-
+    const names={letters:'Остров Букв',syllables:'Остров Слогов',words:'Город Слов'};
+    document.getElementById('vic-icon').textContent='🏆';
+    document.getElementById('vic-title').textContent=`${names[curLvl]} пройден!`;
+    document.getElementById('vic-xp').textContent='+50 ⭐ Бонус!';
+    document.getElementById('vic-badge').innerHTML=badge?`<div class="new-badge">${badge.e} Новый значок: ${badge.name}!</div>`:'';
     showScreen('screen-victory');
-    playSound('victory');
-    vib([100,50,100,50,200]);
-    speak('Ура! Ты справился! Молодец!');
+    playSound('victory'); vib([100,50,100,50,200]);
+    speak('Ура! Молодец!');
     launchConfetti();
 }
 
-// ─────────────────────────────────────────
-// КОНФЕТТИ
-// ─────────────────────────────────────────
 function launchConfetti() {
-    const canvas = document.getElementById('confetti-canvas');
-    const ctx    = canvas.getContext('2d');
-    canvas.width  = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
-    const W = canvas.width, H = canvas.height;
-
-    const colors = ['#FF6B6B','#FFE66D','#A8E6CF','#88D8EA','#FF8B94','#B388FF','#80DEEA','#FFCC99'];
-    const pieces = Array.from({length:130}, () => ({
-        x:  Math.random() * W,
-        y: -20 - Math.random() * 120,
-        w:  Math.random() * 12 + 6,
-        h:  Math.random() * 7 + 4,
-        c:  colors[Math.floor(Math.random() * colors.length)],
-        vx: (Math.random() - 0.5) * 5,
-        vy: Math.random() * 4 + 1.5,
-        rot: Math.random() * 360,
-        rv:  (Math.random() - 0.5) * 9,
-        op:  1,
+    const cv=document.getElementById('confetti-canvas'), ctx=cv.getContext('2d');
+    cv.width=cv.offsetWidth; cv.height=cv.offsetHeight;
+    const W=cv.width, H=cv.height;
+    const colors=['#FF6B6B','#FFE66D','#A8E6CF','#88D8EA','#FF8B94','#B388FF','#80DEEA','#FFCC99'];
+    const ps=Array.from({length:130},()=>({
+        x:Math.random()*W, y:-20-Math.random()*120,
+        w:Math.random()*12+6, h:Math.random()*7+4,
+        c:colors[Math.floor(Math.random()*colors.length)],
+        vx:(Math.random()-.5)*5, vy:Math.random()*4+1.5,
+        rot:Math.random()*360, rv:(Math.random()-.5)*9, op:1
     }));
-
-    let t = 0;
-    function draw() {
-        ctx.clearRect(0, 0, W, H);
-        let alive = false;
-        pieces.forEach(p => {
-            if (p.op <= 0) return;
-            ctx.save();
-            ctx.globalAlpha = p.op;
-            ctx.translate(p.x, p.y);
-            ctx.rotate(p.rot * Math.PI / 180);
-            ctx.fillStyle = p.c;
-            ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+    let t=0;
+    (function draw(){
+        ctx.clearRect(0,0,W,H); let alive=false;
+        ps.forEach(p=>{
+            if(p.op<=0) return;
+            ctx.save(); ctx.globalAlpha=p.op;
+            ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+            ctx.fillStyle=p.c; ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
             ctx.restore();
-            p.x  += p.vx + Math.sin(t * 0.03 + p.y * 0.01) * 0.6;
-            p.y  += p.vy;
-            p.vy += 0.055;
-            p.rot += p.rv;
-            if (p.y > H * 0.75) p.op -= 0.018;
-            if (p.op > 0) alive = true;
+            p.x+=p.vx+Math.sin(t*.03+p.y*.01)*.6; p.y+=p.vy; p.vy+=.055;
+            p.rot+=p.rv; if(p.y>H*.75) p.op-=.018; if(p.op>0) alive=true;
         });
-        t++;
-        if (alive) requestAnimationFrame(draw);
-    }
-    draw();
+        t++; if(alive) requestAnimationFrame(draw);
+    })();
 }
 
-// ─────────────────────────────────────────
-// СЕРВИС-ВОРКЕР
-// ─────────────────────────────────────────
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
-}
+/* ─── SERVICE WORKER ─── */
+if ('serviceWorker' in navigator)
+    window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
 
-// ─────────────────────────────────────────
-// СТАРТ
-// ─────────────────────────────────────────
-if (state.robotName) {
-    updateStreak();
-    save();
-    showMap();
-}
+/* ─── СТАРТ ─── */
+if (state.robotName) { updateStreak(); save(); showMap(); }
