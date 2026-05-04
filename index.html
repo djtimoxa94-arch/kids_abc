@@ -1,107 +1,124 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Азбука: Остров Сокровищ</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="manifest" href="manifest.json">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1CB0F6">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Азбука: Остров Сокровищ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0e9fff">
 </head>
 <body>
-<div class="app-container">
 
-    <!-- ░░ ЭКРАН: ИМЯ РОБОТА ░░ -->
-    <div id="screen-setup" class="screen active">
-        <div class="setup-robot">🤖</div>
-        <h1>Привет, Друг!</h1>
-        <p>Я твой новый помощник.<br>Как ты меня назовёшь?</p>
-        <input type="text" id="robot-name-input" class="input-name" placeholder="Введи имя...">
-        <button class="game-btn btn-green" onclick="saveRobotName()">ПОГНАЛИ! 🚀</button>
+<!-- ПРИВЕТСТВИЕ -->
+<div id="screen-setup" class="screen active">
+  <div class="setup-deco">
+    <div class="cloud c1">☁️</div><div class="cloud c2">☁️</div>
+    <div class="sun">🌞</div><div class="palm p1">🌴</div><div class="palm p2">🌴</div>
+  </div>
+  <div class="setup-card">
+    <div class="mascot-row">
+      <div class="mascot">🦜</div>
+      <div class="bubble">Привет! Я Кеша!</div>
     </div>
-
-    <!-- ░░ ЭКРАН: КАРТА ░░ -->
-    <div id="screen-map" class="screen">
-        <div class="header-panel">
-            <div class="stats-badge">
-                <span id="robot-icon">⚙️</span>
-                <span id="robot-name-display">Бот</span>
-            </div>
-            <div class="stats-badge orange">⭐ <span id="xp-display">0</span></div>
-            <div class="stats-badge red">🔥 <span id="streak-display">0</span></div>
-        </div>
-
-        <div class="map-bg">
-            <div class="island" id="isl-letters" onclick="startLevel('letters')">
-                <span style="font-size:3rem">🅰️</span>
-                <div class="island-label">Остров Букв</div>
-                <div class="island-progress" id="prog-letters"></div>
-            </div>
-            <div class="path-arrow">↓</div>
-            <div class="island locked" id="isl-syllables" onclick="startLevel('syllables')">
-                <span style="font-size:3rem">🧩</span>
-                <div class="island-label">Остров Слогов</div>
-                <div class="island-progress" id="prog-syllables"></div>
-            </div>
-            <div class="path-arrow">↓</div>
-            <div class="island locked" id="isl-words" onclick="startLevel('words')">
-                <span style="font-size:3rem">💎</span>
-                <div class="island-label">Город Слов</div>
-                <div class="island-progress" id="prog-words"></div>
-            </div>
-        </div>
-
-        <div class="badges-panel" id="badges-panel"></div>
-    </div>
-
-    <!-- ░░ ЭКРАН: ИГРА ░░ -->
-    <div id="screen-game" class="screen game-screen">
-        <div class="game-header">
-            <button onclick="goMap()" class="icon-btn">🗺️</button>
-            <div id="progress-tag" class="prog-tag">1 / 33</div>
-            <button onclick="speakCurrent()" class="icon-btn">🔊</button>
-        </div>
-
-        <!-- Фаза 1: Карточка -->
-        <div id="phase-card" class="phase">
-            <div id="card-emoji" class="big-emoji">🍎</div>
-            <div id="card-char" class="big-char">А</div>
-            <div id="card-word" class="card-word">АРБУЗ</div>
-            <button class="game-btn btn-blue" onclick="startQuiz()">ПРОВЕРЬ МЕНЯ! 🎯</button>
-        </div>
-
-        <!-- Фаза 2: Викторина -->
-        <div id="phase-quiz" class="phase hidden">
-            <div id="quiz-prompt" class="quiz-prompt">С какой буквой эта картинка?</div>
-            <div id="quiz-emoji" class="big-emoji">🍎</div>
-            <div id="quiz-options" class="options-grid"></div>
-        </div>
-
-        <!-- Фаза 3: Обратная связь -->
-        <div id="phase-feedback" class="phase hidden feedback-phase">
-            <div id="fb-icon" style="font-size:5rem">🎉</div>
-            <div id="fb-text" class="fb-text">Правильно!</div>
-            <div id="fb-sub" class="fb-sub">+10 ⭐</div>
-            <button class="game-btn btn-green" onclick="nextStep()">ДАЛЬШЕ ➡️</button>
-        </div>
-    </div>
-
-    <!-- ░░ ЭКРАН: ПОБЕДА ░░ -->
-    <div id="screen-victory" class="screen victory-screen">
-        <canvas id="confetti-canvas"></canvas>
-        <div class="victory-body">
-            <div id="vic-icon" style="font-size:6rem">🏆</div>
-            <h1 id="vic-title">Остров пройден!</h1>
-            <div id="vic-xp" class="vic-xp">+50 ⭐ Бонус!</div>
-            <div id="vic-badge"></div>
-            <button class="game-btn btn-green" onclick="showMap()">НА КАРТУ 🗺️</button>
-            <button class="game-btn btn-outline" onclick="replayLevel()" style="margin-top:12px">ЕЩЁ РАЗ 🔄</button>
-        </div>
-    </div>
-
+    <h1 class="title">Остров<br><span>Сокровищ</span></h1>
+    <p class="sub">Как тебя зовут, мореплаватель?</p>
+    <input id="robot-name-input" class="name-input" placeholder="Введи имя...">
+    <button class="btn btn-green" onclick="saveRobotName()">ПОГНАЛИ 🚀</button>
+  </div>
 </div>
+
+<!-- КАРТА -->
+<div id="screen-map" class="screen">
+  <div class="map-header">
+    <div class="chip"><span id="robot-icon">🦜</span><span id="robot-name-display">Игрок</span></div>
+    <div class="stats">
+      <div class="pill gold">⭐<span id="xp-display">0</span></div>
+      <div class="pill fire">🔥<span id="streak-display">0</span></div>
+    </div>
+  </div>
+  <div class="map-body">
+    <div class="path-line"></div>
+    <div class="island-node" id="isl-words" onclick="startLevel('words')">
+      <div class="glow glow-purple"></div>
+      <div class="isl-btn"><span class="isl-icon">💎</span></div>
+      <div class="isl-label">Слова</div>
+      <div class="isl-badge" id="prog-words"></div>
+    </div>
+    <div class="island-node shift-right" id="isl-syllables" onclick="startLevel('syllables')">
+      <div class="glow glow-green"></div>
+      <div class="isl-btn"><span class="isl-icon">🧩</span></div>
+      <div class="isl-label">Слоги</div>
+      <div class="isl-badge" id="prog-syllables"></div>
+    </div>
+    <div class="island-node" id="isl-letters" onclick="startLevel('letters')">
+      <div class="glow glow-orange"></div>
+      <div class="isl-btn"><span class="isl-icon">🅰️</span></div>
+      <div class="isl-label">Буквы</div>
+      <div class="isl-badge" id="prog-letters"></div>
+    </div>
+  </div>
+  <div class="badges-strip" id="badges-panel"></div>
+</div>
+
+<!-- ИГРА -->
+<div id="screen-game" class="screen game-screen">
+  <div class="game-hdr">
+    <button class="hdr-btn" onclick="goMap()">🗺️</button>
+    <div class="prog-wrap"><div class="prog-fill" id="progress-fill"></div><span class="prog-lbl" id="progress-tag">1/33</span></div>
+    <button class="hdr-btn" onclick="speakCurrent()">🔊</button>
+  </div>
+
+  <div id="phase-card" class="phase">
+    <div class="card-layout">
+      <div id="card-emoji" class="c-emoji">🍎</div>
+      <div class="card-info">
+        <div id="card-char" class="c-char">А</div>
+        <div id="card-word" class="c-word">АРБУЗ</div>
+        <button class="btn btn-yellow" onclick="startQuiz()">ПРОВЕРЬ 🎯</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="phase-quiz" class="phase hidden">
+    <div class="quiz-layout">
+      <div class="quiz-top">
+        <div id="quiz-prompt" class="q-prompt">Что это?</div>
+        <div id="quiz-emoji" class="q-emoji">🍎</div>
+      </div>
+      <div id="quiz-options" class="opts-grid"></div>
+    </div>
+  </div>
+
+  <div id="phase-feedback" class="phase hidden">
+    <div class="fb-layout">
+      <div id="fb-icon" class="fb-icon">🎉</div>
+      <div id="fb-text" class="fb-text">Правильно!</div>
+      <div id="fb-sub" class="fb-xp">+10 ⭐</div>
+      <button class="btn btn-green" onclick="nextStep()">ДАЛЬШЕ ➡️</button>
+    </div>
+  </div>
+</div>
+
+<!-- ПОБЕДА -->
+<div id="screen-victory" class="screen">
+  <canvas id="confetti-canvas" class="confetti-cv"></canvas>
+  <div class="vic-wrap">
+    <div class="vic-card">
+      <span id="vic-icon" class="vic-trophy">🏆</span>
+      <h1 id="vic-title">Пройдено!</h1>
+      <div id="vic-xp" class="vic-xp">+50 ⭐</div>
+      <div id="vic-badge"></div>
+      <button class="btn btn-green" onclick="showMap()">НА КАРТУ 🗺️</button>
+      <button class="btn btn-ghost" onclick="replayLevel()">ЕЩЁ РАЗ 🔄</button>
+    </div>
+  </div>
+</div>
+
+<div id="star-burst" class="star-burst hidden"></div>
 <script src="app.js"></script>
 </body>
 </html>
